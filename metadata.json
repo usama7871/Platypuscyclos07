@@ -1,0 +1,6 @@
+{
+  "name": "brittany-chiang-v4-portfolio-template",
+  "description": "Pixel-perfect clone of Brittany Chiang's iconic v4 portfolio with a streamlined configuration file, live customizer, and 1-click Vercel/Netlify deployment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
