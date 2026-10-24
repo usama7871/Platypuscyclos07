@@ -21,7 +21,20 @@ import { AdminAuthModal } from './components/AdminAuthModal';
 import { ArrowUp, Sliders } from 'lucide-react';
 
 export default function App() {
-  const [config, setConfig] = useState<PortfolioConfig>(defaultPortfolioConfig);
+  const [config, setConfig] = useState<PortfolioConfig>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('portfolio_user_custom_config');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return { ...defaultPortfolioConfig, ...parsed };
+        }
+      } catch (err) {
+        console.error('Error reading custom portfolio config from localStorage:', err);
+      }
+    }
+    return defaultPortfolioConfig;
+  });
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -32,7 +45,12 @@ export default function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     return typeof window !== 'undefined' && sessionStorage.getItem('portfolio_admin_auth') === 'true';
   });
-  const [isStealthMode, setIsStealthMode] = useState<boolean>(false);
+  const [isStealthMode, setIsStealthMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('portfolio_stealth_mode') === 'true';
+    }
+    return false;
+  });
 
   // Scroll metrics: progress bar and back to top
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -113,8 +131,31 @@ export default function App() {
     sessionStorage.removeItem('portfolio_admin_auth');
   };
 
+  const handleUpdateConfig = (newCfg: PortfolioConfig) => {
+    setConfig(newCfg);
+    try {
+      localStorage.setItem('portfolio_user_custom_config', JSON.stringify(newCfg));
+    } catch (e) {
+      console.error('Failed to save portfolio config to localStorage:', e);
+    }
+  };
+
+  const handleToggleStealthMode = (stealth: boolean) => {
+    setIsStealthMode(stealth);
+    try {
+      localStorage.setItem('portfolio_stealth_mode', String(stealth));
+    } catch (e) {
+      console.error('Failed to save stealth mode state to localStorage:', e);
+    }
+  };
+
   const handleResetToDefault = () => {
     setConfig(defaultPortfolioConfig);
+    try {
+      localStorage.removeItem('portfolio_user_custom_config');
+    } catch (e) {
+      console.error('Failed to remove custom config from localStorage:', e);
+    }
   };
 
   const scrollToTop = () => {
@@ -269,11 +310,11 @@ export default function App() {
         isOpen={isCustomizerOpen}
         onClose={() => setIsCustomizerOpen(false)}
         config={config}
-        onUpdateConfig={(newCfg) => setConfig(newCfg)}
+        onUpdateConfig={handleUpdateConfig}
         onResetToDefault={handleResetToDefault}
         onLockAdmin={handleLockAdmin}
         isStealthMode={isStealthMode}
-        onToggleStealthMode={setIsStealthMode}
+        onToggleStealthMode={handleToggleStealthMode}
         initialTab={customizerTab}
       />
 

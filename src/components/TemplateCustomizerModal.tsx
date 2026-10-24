@@ -46,11 +46,25 @@ export const TemplateCustomizerModal: React.FC<TemplateCustomizerModalProps> = (
   const [shortBio, setShortBio] = useState(config.personal.shortBio);
   const [accentColor, setAccentColor] = useState(config.theme.accentColor);
   const [resumeUrl, setResumeUrl] = useState(config.personal.resumeUrl);
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Sync inputs with config whenever modal opens or config updates
+  React.useEffect(() => {
+    if (isOpen) {
+      setName(config.personal.name);
+      setLogoLetter(config.personal.logoLetter);
+      setTagline(config.personal.tagline);
+      setEmail(config.personal.email);
+      setShortBio(config.personal.shortBio);
+      setAccentColor(config.theme.accentColor);
+      setResumeUrl(config.personal.resumeUrl);
+    }
+  }, [isOpen, config]);
 
   if (!isOpen) return null;
 
   const handleApplyChanges = () => {
-    onUpdateConfig({
+    const updated = {
       ...config,
       personal: {
         ...config.personal,
@@ -66,7 +80,10 @@ export const TemplateCustomizerModal: React.FC<TemplateCustomizerModalProps> = (
         accentColor,
         accentTint: `${accentColor}18`,
       },
-    });
+    };
+    onUpdateConfig(updated);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2500);
   };
 
   const handleColorSelect = (hex: string) => {
@@ -468,15 +485,23 @@ export const defaultPortfolioConfig: PortfolioConfig = ${JSON.stringify(
                   Reset to Original Brittany Chiang v4
                 </button>
 
-                <button
-                  onClick={() => {
-                    handleApplyChanges();
-                    onClose();
-                  }}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded font-mono text-xs font-semibold text-[#0a192f] bg-[#64ffda] hover:bg-[#64ffda]/90 transition-colors"
-                >
-                  Apply & Preview Changes
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  {justSaved && (
+                    <span className="text-xs font-mono text-emerald-400 flex items-center gap-1">
+                      <Check size={14} />
+                      Saved!
+                    </span>
+                  )}
+                  <button
+                    onClick={() => {
+                      handleApplyChanges();
+                      onClose();
+                    }}
+                    className="w-full sm:w-auto px-6 py-2.5 rounded font-mono text-xs font-semibold text-[#0a192f] bg-[#64ffda] hover:bg-[#64ffda]/90 transition-colors shadow-lg"
+                  >
+                    Save & Apply Changes
+                  </button>
+                </div>
               </div>
             </div>
           )}
